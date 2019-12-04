@@ -24,6 +24,7 @@
   #include <sys/queue.h>
 #endif
 
+#include "kremlib.h"
 #include "RegionAllocator.h"
 
 #if REGION_STATISTICS
