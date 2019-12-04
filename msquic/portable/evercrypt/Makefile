@@ -102,10 +102,12 @@ all: libevercrypt.$(SO) libevercrypt.a
 clean:
 	rm -fr *.o *.a *.d *.d.* *.dll *.so *~
 
-../kremlib/libkremlib.dll:
+libevercrypt.$(SO): ../kremlib/libkremlib.$(SO)
+       
+../kremlib/libkremlib.$(SO):
 	@echo "Please run make in ../kremlib" && false
 
-%.$(SO): $(OBJS) ../kremlib/libkremlib.dll
+%.$(SO): $(OBJS)
 	$(CC) $(CFLAGS) -shared -o $@ $^ $(LDFLAGS)
 
 %.a: $(OBJS)

@@ -50,11 +50,13 @@ clean:
 
 -include $(addsuffix .d,$(FILES))
 
-../kremlib/libkremlib.a:
+../kremlib/libkremlib.$(SO):
 	@echo "Please run make in ../kremlib" && false
 
-../evercrypt/libevercrypt.a:
+../evercrypt/libevercrypt.$(SO):
 	@echo "Please run make in ../evercrypt" && false
+
+libmitls.$(SO): ../kremlib/libkremlib.$(SO) ../evercrypt/libevercrypt.$(SO)
 
 %.$(SO): $(addsuffix .o,$(FILES))
 	$(CC) $(CFLAGS) -shared -o $@ $^ $(LDOPTS)
