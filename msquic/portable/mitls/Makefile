@@ -3,47 +3,25 @@
 UNAME		= $(shell uname)
 MARCH		?= x86_64
 
-LDOPTS += -levercrypt
-LDOPTS += -L../evercrypt
-LDOPTS += -L../kremlin -lkremlib
+LDOPTS += -L../evercrypt -levercrypt -lcrypto
+LDOPTS += -L../kremlib -lkremlib
 
 ifeq ($(OS),Windows_NT)
-  PATH := $(MITLS_HOME)/src/pki:$(PATH)
   SO = dll
   CC ?= x86_64-w64-mingw32-gcc
   CFLAGS := -pthread $(CFLAGS) -include log_to_choice.h
-  LDOPTS += -lntdll -lbcrypt
-  export PATH
 else ifeq ($(UNAME),Darwin)
   VARIANT = -Darwin
-  DYLD_LIBRARY_PATH :=$(MITLS_HOME)/src/pki:$(DYLD_LIBRARY_PATH)
   SO = so
-  export DYLD_LIBRARY_PATH
 else ifeq ($(UNAME),Linux)
   VARIANT = -Linux
   CFLAGS := -fPIC $(CFLAGS)
-  LD_LIBRARY_PATH :=  $(MITLS_HOME)/src/pki:$(LD_LIBRARY_PATH)
-  LDOPTS := -lpthread -Xlinker -z -Xlinker noexecstack -Xlinker --version-script -Xlinker $(MITLS_HOME)/src/tls/libmitls_version_script -Wl,-z,defs $(LDOPTS)
+  LDOPTS := -lpthread -Xlinker -z -Xlinker noexecstack -Xlinker --unresolved-symbols=report-all $(LDOPTS)
   SO = so
-  export LD_LIBRARY_PATH
 endif
 
 # Force-include RegionAllocator.h and enable heap regions in all builds
 CFLAGS := $(CFLAGS) -include RegionAllocator.h -DUSE_HEAP_REGIONS
-
-ifneq (,$(EVEREST_WINDOWS))
-CFLAGS+= # -DKRML_NOSTRUCT_PASSING
-endif
-
-ifndef NO_OPENSSL
-ifeq ($(OS),Windows_NT)
-  PATH := $(MLCRYPTO_HOME)/openssl:$(PATH)
-else ifeq ($(UNAME),Darwin)
-  DYLD_LIBRARY_PATH := $(MLCRYPTO_HOME)/openssl:$(DYLD_LIBRARY_PATH)
-else
-  LD_LIBRARY_PATH := $(MLCRYPTO_HOME)/openssl:$(LD_LIBRARY_PATH)
-endif
-endif
 
 INCLUDE_DIRS 	= ../include .
 
@@ -59,14 +37,10 @@ CFLAGS := $(addprefix -I,$(INCLUDE_DIRS)) $(CFLAGS) -Wall -Werror -Wno-deprecate
   -Wno-missing-braces -Wno-error-tautological-compare -Wno-error-int-to-void-pointer-cast \
   -Wno-error-enum-conversion
 
-ifndef NO_OPENSSL
-CFLAGS += -I$(MLCRYPTO_HOME)/openssl/include
-LDOPTS += -L$(MLCRYPTO_HOME)/openssl -lcrypto
-else
-CFLAGS += -DNO_OPENSSL
-endif
+all: libmitls.$(SO) libmitls.a
 
-all: libmitls.$(SO)
+clean:
+	 rm -fr *.o *.a *.d *.d.* *.dll *.so *~
 
 %.d: %.c
 	@set -e; rm -f $@; \
@@ -76,12 +50,15 @@ all: libmitls.$(SO)
 
 -include $(addsuffix .d,$(FILES))
 
-libmitls.$(SO): $(addsuffix .o,$(FILES))
-	rm -rf $(EVERCRYPT_HOME)/../dist/compact/*.dll.a # newer dynamic link is not properly setup on mitls/master ... persist with static linking
-	$(CC) $^ -shared -o $@ $(LDOPTS) $(KREMLIN_HOME)/kremlib/dist/generic/libkremlib.a
+../kremlib/libkremlib.a:
+	@echo "Please run make in ../kremlib" && false
 
-clean:
-	rm -fr $(addsuffix .o,$(FILES)) $(addsuffix .c,$(FILES)) libmitls.$(SO)
-	rm -fr *.a *.h *.d *~
+../evercrypt/libevercrypt.a:
+	@echo "Please run make in ../evercrypt" && false
 
-test:
+%.$(SO): $(addsuffix .o,$(FILES))
+	$(CC) $(CFLAGS) -shared -o $@ $^ $(LDOPTS)
+
+%.a: $(addsuffix .o,$(FILES))
+	$(AR) cr $@ $^
+

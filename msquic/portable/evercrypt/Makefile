@@ -26,16 +26,19 @@ UNAME		= $(shell uname)
 MARCH		= x86_64
 ifeq ($(UNAME),Darwin)
   VARIANT	= -darwin
+  PKG_CONFIG    = pkg-config
   SO		= so
 else ifeq ($(UNAME),Linux)
   CFLAGS	+= -fPIC -fstack-check
   VARIANT	= -linux
   SO 		= so
+  PKG_CONFIG    = pkg-config
   LDFLAGS	+= -Xlinker -z -Xlinker noexecstack -Xlinker --unresolved-symbols=report-all
 else ifeq ($(OS),Windows_NT)
   CFLAGS        += -fno-asynchronous-unwind-tables
   CC		= $(MARCH)-w64-mingw32-gcc
   AR		= $(MARCH)-w64-mingw32-ar
+  PKG_CONFIG    = $(MARCH)-w64-mingw32-pkg-config
   VARIANT	= -mingw
   SO		= dll
   LDFLAGS	= -Wl,--out-implib,libevercrypt.dll.a
@@ -57,22 +60,24 @@ AR ?= ar
 
 # 3. Honor configurations
 
-# Backwards-compat
-ifneq (,$(MLCRYPTO_HOME))
-OPENSSL_HOME 	= $(MLCRYPTO_HOME)/openssl
-endif
+LDFLAGS += -L../kremlib -lkremlib
 
 # This is the "auto-detection". Since the parent Makefile runs with -bundle
 # EverCrypt.OpenSSL, in case the static configuration doesn't call into
 # OpenSSL, then EverCrypt_OpenSSL.h is not generated, meaning if the header
 # doesn't exist we are not intend to compile against OpenSSL.
 ifneq (,$(wildcard EverCrypt_OpenSSL.h))
-  CFLAGS	+= -I $(OPENSSL_HOME)/include
-  LDFLAGS 	+= -L$(OPENSSL_HOME) -lcrypto
-ifneq ($(OS),Windows_NT)
-  LDFLAGS	+= -ldl -lpthread
-endif
+  ifneq (,$(MLCRYPTO_HOME))
+    CFLAGS      += -I$(MLCRYPTO_HOME)/openssl/include
+    LDFLAGS     += -L$(MLCRYPTO_HOME)/openssl -lcrypto
+  else
+    CFLAGS	+= `$(PKG_CONFIG) --cflags libcrypto`
+    LDFLAGS     += -lcrypto
+  endif
   SOURCES	+= evercrypt_openssl.c
+  ifneq ($(OS),Windows_NT)
+  LDFLAGS       += -ldl -lpthread
+  endif
 endif
 
 ifneq (,$(wildcard EverCrypt_BCrypt.h))
@@ -97,10 +102,10 @@ all: libevercrypt.$(SO) libevercrypt.a
 clean:
 	rm -fr *.o *.a *.d *.d.* *.dll *.so *~
 
-../kremlib/libkremlib.a:
+../kremlib/libkremlib.dll:
 	@echo "Please run make in ../kremlib" && false
 
-%.$(SO): $(OBJS) ../kremlib/libkremlib.a
+%.$(SO): $(OBJS) ../kremlib/libkremlib.dll
 	$(CC) $(CFLAGS) -shared -o $@ $^ $(LDFLAGS)
 
 %.a: $(OBJS)
