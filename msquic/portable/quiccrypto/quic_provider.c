@@ -340,7 +340,7 @@ int MITLS_CALLCONV quic_crypto_decrypt(quic_key *key, unsigned char *plain, uint
   else if(key->alg == TLS_aead_CHACHA20_POLY1305)
   {
     r = 1 - EverCrypt_Chacha20Poly1305_aead_decrypt(key->key, iv, ad_len, (uint8_t*)ad,
-        plain_len, (uint8_t*)plain, cipher, (uint8_t*)(cipher+plain_len));
+        plain_len, (uint8_t*)plain, (uint8_t*)cipher, (uint8_t*)(cipher+plain_len));
   }
 
 #if DEBUG

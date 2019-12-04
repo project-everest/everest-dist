@@ -16,7 +16,7 @@ else ifeq ($(UNAME),Linux)
   SO = so
 endif
 
-all: kremlib/libkremlib.a evercrypt/libevercrypt.a mitls/libmitls.a
+all: kremlib/libkremlib.a evercrypt/libevercrypt.a mitls/libmitls.a quiccrypto/libquiccrypto.a
 
 kremlib/libkremlib.a:
 	$(MAKE) -C kremlib
@@ -27,8 +27,12 @@ evercrypt/libevercrypt.a: kremlib/libkremlib.a
 mitls/libmitls.a: evercrypt/libevercrypt.a
 	$(MAKE) -C mitls
 
+quiccrypto/libquiccrypto.a: evercrypt/libevercrypt.a
+	$(MAKE) -C quiccrypto
+
 clean:
 	$(MAKE) -C kremlib clean
 	$(MAKE) -C evercrypt clean
 	$(MAKE) -C mitls clean
+	$(MAKE) -C quiccrypto clean
 
