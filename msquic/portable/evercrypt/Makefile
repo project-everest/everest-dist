@@ -107,17 +107,17 @@ libevercrypt.$(SO): ../kremlib/libkremlib.$(SO)
 ../kremlib/libkremlib.$(SO):
 	@echo "Please run make in ../kremlib" && false
 
-%.$(SO): $(OBJS)
-	$(CC) $(CFLAGS) -shared -o $@ $^ $(LDFLAGS)
-
-%.a: $(OBJS)
-	$(AR) cr $@ $^
-
 %.d: %.c
 	@set -e; rm -f $@; \
 	$(CC) -MM $(CFLAGS) $< > $@.$$$$; \
 	sed 's,\($(notdir $*)\)\.o[ :]*,$(dir $@)\1.o $@ : ,g' < $@.$$$$ > $@; \
 	rm -f $@.$$$$
 
-include $(patsubst %.c,%.d,$(SOURCES))
+-include $(patsubst %.c,%.d,$(SOURCES))
+
+%.$(SO): $(OBJS)
+	$(CC) $(CFLAGS) -shared -o $@ $^ $(LDFLAGS)
+
+%.a: $(OBJS)
+	$(AR) cr $@ $^
 
