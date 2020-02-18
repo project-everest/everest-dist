@@ -1103,13 +1103,13 @@ int MITLS_CALLCONV FFI_mitls_quic_get_record_key(quic_state *st, quic_raw_key *k
   return res;
 }
 
-int MITLS_CALLCONV FFI_mitls_quic_get_record_secrets(quic_state *st, quic_secret *crs, quic_secret *srs)
+int MITLS_CALLCONV FFI_mitls_quic_get_record_secrets(quic_state *st, int32_t epoch, quic_secret *crs, quic_secret *srs)
 {
   int res = 0;
   FStar_Pervasives_Native_option__Old_KeySchedule_raw_rekey_secrets r;
   
   ENTER_HEAP_REGION(st->rgn);
-  r = QUIC_get_secrets(st->hs);
+  r = QUIC_get_secrets(st->hs, epoch);
   
   if(r.tag == FStar_Pervasives_Native_Some)
   {

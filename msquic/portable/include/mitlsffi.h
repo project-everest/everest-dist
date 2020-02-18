@@ -255,7 +255,7 @@ extern int MITLS_CALLCONV FFI_mitls_quic_process(quic_state *state, quic_process
 
 // get_record_secrets can be called after the complete flag is set
 extern int MITLS_CALLCONV FFI_mitls_quic_get_record_key(quic_state *state, quic_raw_key *key, int32_t epoch, quic_direction rw);
-extern int MITLS_CALLCONV FFI_mitls_quic_get_record_secrets(quic_state *state, quic_secret *crs, quic_secret *srs);
+extern int MITLS_CALLCONV FFI_mitls_quic_get_record_secrets(quic_state *state, int32_t epoch, quic_secret *crs, quic_secret *srs);
 
 // Can be called after handshake completes to send a new ticket. Additional ticket data can be read back with get_hello_summary
 extern int MITLS_CALLCONV FFI_mitls_quic_send_ticket(quic_state *state, const unsigned char *ticket_data, size_t ticket_data_len);
